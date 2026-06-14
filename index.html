@@ -97,6 +97,9 @@
   .person:first-of-type{border-top:1px solid var(--line);margin-top:12px}
   .person .nm{font-weight:600;font-size:15px}
   .person .am{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:600;color:var(--gold)}
+  .person .right{display:flex;align-items:center;gap:12px}
+  .person .send{background:var(--panel-2);border:1px solid var(--line);color:var(--gold);font-weight:700;font-size:12.5px;padding:7px 12px;border-radius:9px;white-space:nowrap}
+  .person .send:active{background:var(--line)}
   .cardrow{display:flex;align-items:center;gap:13px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:9px}
   .cardrow:active{background:var(--panel-2)}
   .cardrow .chip-c{width:42px;height:30px;flex:none;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#11171E;font-weight:800}
@@ -343,7 +346,8 @@
     const rc=$("receberCard");
     if(total>0){
       rc.innerHTML=`<div class="receber-total"><div class="lab">Total a receber da família</div><div class="big">${fmt.format(total)}</div>
-        ${people.map(([nm,v])=>`<div class="person"><span class="nm">${escapeHtml(nm)}</span><span class="am">${fmt.format(v)}</span></div>`).join("")}</div>`;
+        ${people.map(([nm,v])=>`<div class="person"><span class="nm">${escapeHtml(nm)}</span><span class="right"><span class="am">${fmt.format(v)}</span><button class="send" data-person="${escapeHtml(nm)}">Enviar ⤴</button></span></div>`).join("")}</div>`;
+      rc.querySelectorAll(".send").forEach(b=>b.addEventListener("click",ev=>{ev.stopPropagation();sharePerson(b.dataset.person,mk);}));
     }else{
       rc.innerHTML=`<div class="card" style="color:var(--muted);font-size:13.5px;text-align:center">Ninguém usou seus cartões neste mês.</div>`;
     }
@@ -392,6 +396,39 @@
     const data=months.map(m=>{const tx=state.transactions.filter(t=>txMonthKey(t)===m&&isMine(t));return{m,in:tx.filter(t=>t.type==="income").reduce((a,t)=>a+t.amount,0),ex:tx.filter(t=>t.type==="expense").reduce((a,t)=>a+t.amount,0)};});
     const gmax=Math.max(1,...data.map(d=>Math.max(d.in,d.ex)));
     $("trendCard").innerHTML=`<div class="trend">${data.map(d=>{const mn=new Date(d.m+"-01T00:00:00").toLocaleDateString("pt-BR",{month:"short"}).replace(".","");return `<div class="col"><div class="stack"><div class="bin" style="height:${(d.in/gmax*100).toFixed(1)}%"></div><div class="bex" style="height:${(d.ex/gmax*100).toFixed(1)}%"></div></div><div class="ml">${mn}</div></div>`;}).join("")}</div><div class="legend"><span><i style="background:var(--income)"></i>Entradas</span><span><i style="background:var(--expense)"></i>Minhas saídas</span></div>`;
+  }
+
+  // ---------- COBRANÇA POR PESSOA ----------
+  function buildPersonText(person,mk){
+    const tx=state.transactions.filter(t=>txMonthKey(t)===mk&&(t.responsavel||"Eu")===person&&t.type==="expense")
+      .sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:a.created-b.created);
+    const total=tx.reduce((a,t)=>a+t.amount,0);
+    const mes=new Date(mk+"-01T00:00:00").toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
+    const lines=[`Resumo do cartão — ${mes}`,`Para: ${person}`,""];
+    tx.forEach(t=>{
+      const d=new Date(t.date+"T00:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"});
+      const c=cardById(t.cardId);
+      const parts=[d,t.category];
+      if(t.desc)parts.push(t.desc);
+      if(c)parts.push(c.name);
+      lines.push(`• ${parts.join(" · ")} — ${fmt.format(t.amount)}`);
+    });
+    lines.push("","———————————",`Total a pagar: ${fmt.format(total)}`);
+    return lines.join("\n");
+  }
+  async function sharePerson(person,mk){
+    const text=buildPersonText(person,mk);
+    if(navigator.share){
+      try{await navigator.share({title:`Cobrança — ${person}`,text});return;}
+      catch(e){if(e&&e.name==="AbortError")return;}
+    }
+    // fallback: copiar + baixar .txt
+    try{if(navigator.clipboard)await navigator.clipboard.writeText(text);}catch(e){}
+    const blob=new Blob([text],{type:"text/plain;charset=utf-8"});
+    const url=URL.createObjectURL(blob);const a=document.createElement("a");
+    a.href=url;a.download=`cobranca-${person.replace(/\s+/g,"_")}-${mk}.txt`;
+    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    toast("Texto copiado e .txt baixado");
   }
 
   // ---------- MODAL LANÇAMENTO ----------

@@ -1,4 +1,4 @@
-const V = 'saldo-v1';
+const V = 'saldo-v2';
 
 self.addEventListener('install', e => {
   e.waitUntil(
@@ -17,7 +17,7 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   if (e.request.mode === 'navigate') {
     e.respondWith(
-      fetch(e.request)
+      fetch(new Request(e.request, { cache: 'no-cache' }))
         .then(res => {
           const clone = res.clone();
           caches.open(V).then(c => c.put(e.request, clone));

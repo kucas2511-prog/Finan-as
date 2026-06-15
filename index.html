@@ -816,7 +816,23 @@
   $("btnReset").addEventListener("click",()=>{if(confirm("Apagar TUDO? Exporte um backup antes se quiser guardar.")){state={transactions:[],cards:[],people:[],customCats:{income:[],expense:[]},lastBackup:state.lastBackup};cardFilter=null;save();toast("Dados apagados");}});
 
   render();
-  if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').then(r=>{r.addEventListener('updatefound',()=>{const w=r.installing;w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller)toast('Nova versão disponível — feche e reabra o app');});});});}
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('sw.js').then(r=>{
+      r.update(); // força verificação a cada abertura
+      r.addEventListener('updatefound',()=>{
+        const w=r.installing;
+        w.addEventListener('statechange',()=>{
+          if(w.state==='installed'&&navigator.serviceWorker.controller)
+            toast('Atualizando para nova versão…');
+        });
+      });
+    });
+    // quando novo SW assume, recarrega automaticamente
+    let reloading=false;
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{
+      if(!reloading){reloading=true;window.location.reload();}
+    });
+  }
 })();
 </script>
 </body>

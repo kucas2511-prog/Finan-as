@@ -184,7 +184,17 @@
   .btn.ghost{background:var(--panel-2);border:1px solid var(--line);color:var(--text)}
   .btn.del{background:transparent;color:var(--expense);flex:0 0 auto;padding:15px 18px}
 
-  .toast{position:fixed;left:50%;bottom:calc(160px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:var(--panel-2);border:1px solid var(--line);color:var(--text);padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.3s;z-index:80}
+  .selbar{position:fixed;left:0;right:0;bottom:calc(56px + env(safe-area-inset-bottom));display:none;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--panel-2);border-top:1px solid var(--line);z-index:44;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+  .selbar.show{display:flex}
+  .selbtn{padding:9px 18px;border-radius:10px;font-weight:700;font-size:14px}
+  .selbtn.ghost{background:var(--panel);border:1px solid var(--line);color:var(--text)}
+  .selbtn.danger{background:var(--expense);color:#fff}
+  .selbtn:active{opacity:.8}
+  .tx .chk{width:22px;height:22px;flex:none;border-radius:50%;border:2px solid var(--line);display:none;align-items:center;justify-content:center;font-size:13px}
+  .selmode .tx .chk{display:flex}
+  .selmode .tx.sel .chk{background:var(--gold);border-color:var(--gold);color:#11171E}
+  .selmode .tx{cursor:default}
+  .selmode .tx:active{background:var(--panel)};bottom:calc(160px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:var(--panel-2);border:1px solid var(--line);color:var(--text);padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.3s;z-index:80}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
@@ -208,7 +218,7 @@
 
 <main>
   <section class="view active" id="view-tx">
-    <div class="section-title">Lançamentos do mês</div>
+    <div class="section-title">Lançamentos do mês <button class="add" id="selectModeBtn">Selecionar</button></div>
     <div id="txList"></div>
   </section>
 
@@ -335,6 +345,14 @@
   </div>
 </div>
 
+<div class="selbar" id="selbar">
+  <span id="selCount">0 selecionados</span>
+  <div style="display:flex;gap:8px">
+    <button class="selbtn ghost" id="selCancel">Cancelar</button>
+    <button class="selbtn danger" id="selDelete">Excluir</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -353,6 +371,7 @@
   let viewMonth=new Date(); viewMonth.setDate(1);
   let yearNum=new Date().getFullYear();
   let draft=null, cardDraft=null, personDraft=null, catDraft=null, cardFilter=null;
+  let selectMode=false, selectedIds=new Set();
 
   function load(){
     try{const r=JSON.parse(localStorage.getItem(KEY));if(r&&r.transactions){
@@ -408,6 +427,7 @@
 
   function renderTxList(mineTx){
     const el=$("txList");
+    el.className=selectMode?"selmode":"";
     if(!mineTx.length){el.innerHTML=`<div class="empty"><div class="big">🪙</div><p>Nenhum lançamento seu neste mês</p><small>Toque no + para adicionar.</small></div>`;return;}
     const byDay={};mineTx.forEach(t=>{(byDay[t.date]=byDay[t.date]||[]).push(t);});
     const days=Object.keys(byDay).sort().reverse();
@@ -419,7 +439,8 @@
       html+=`<div class="day-group"><div class="day-head"><span>${dlabel}</span><span class="dsub">${daySub>=0?"+":"−"}${fmtNum.format(Math.abs(daySub))}</span></div>`;
       list.forEach(t=>{
         const c=cardById(t.cardId);
-        html+=`<div class="tx" data-id="${t.id}"><div class="dot">${catIcon(t.type,t.category)}</div>
+        const isSel=selectedIds.has(t.id);
+        html+=`<div class="tx${isSel?" sel":""}" data-id="${t.id}"><div class="chk">${isSel?"✓":""}</div><div class="dot">${catIcon(t.type,t.category)}</div>
           <div class="info"><div class="cat">${t.category}</div>
           <div class="desc">${c?`<span class="pill card">${escapeHtml(c.name)}</span>`:""}${t.desc?escapeHtml(t.desc):""}</div></div>
           <div class="amt ${t.type}">${t.type==="income"?"+":"−"} ${fmtNum.format(t.amount)}</div></div>`;
@@ -427,8 +448,38 @@
       html+="</div>";
     });
     el.innerHTML=html;
-    el.querySelectorAll(".tx").forEach(n=>n.addEventListener("click",()=>openSheet(n.dataset.id)));
+    el.querySelectorAll(".tx").forEach(n=>n.addEventListener("click",()=>{
+      if(selectMode){
+        const id=n.dataset.id;
+        if(selectedIds.has(id))selectedIds.delete(id);else selectedIds.add(id);
+        syncSelBar();renderTxList(mineTx);
+      }else openSheet(n.dataset.id);
+    }));
   }
+
+  function syncSelBar(){
+    const n=selectedIds.size;
+    $("selCount").textContent=n===0?"Nenhum selecionado":n===1?"1 selecionado":`${n} selecionados`;
+    $("selDelete").disabled=n===0;
+  }
+  function enterSelectMode(){selectMode=true;selectedIds.clear();$("selectModeBtn").textContent="Cancelar";$("selbar").classList.add("show");$("fab").style.display="none";render();}
+  function exitSelectMode(){selectMode=false;selectedIds.clear();$("selectModeBtn").textContent="Selecionar";$("selbar").classList.remove("show");$("fab").style.display="";render();}
+  $("selectModeBtn").addEventListener("click",()=>selectMode?exitSelectMode():enterSelectMode());
+  $("selCancel").addEventListener("click",exitSelectMode);
+  $("selDelete").addEventListener("click",()=>{
+    if(!selectedIds.size)return;
+    // expandir grupos: se qualquer ID selecionado tiver groupId, incluir o grupo todo
+    const toDelete=new Set(selectedIds);
+    state.transactions.forEach(t=>{if(t.groupId&&selectedIds.has(t.id)){state.transactions.filter(x=>x.groupId===t.groupId).forEach(x=>toDelete.add(x.id));}});
+    const extra=toDelete.size-selectedIds.size;
+    const msg=extra>0
+      ?`Excluir ${selectedIds.size} lançamento(s) selecionado(s)?\n\n⚠️ ${extra} parcela(s) extra(s) do mesmo parcelamento também serão excluídas.`
+      :`Excluir ${selectedIds.size} lançamento(s) selecionado(s)?`;
+    if(!confirm(msg))return;
+    state.transactions=state.transactions.filter(t=>!toDelete.has(t.id));
+    toast(`${toDelete.size} lançamento(s) excluído(s)`);
+    exitSelectMode();save();
+  });
 
   function renderCardsView(mk,monthTx){
     const others=monthTx.filter(t=>!isMine(t)&&t.type==="expense");
@@ -646,16 +697,28 @@
     else if($("inInstallment").checked&&draft.instCount>=2){
       const c=draft.instCount,base=Date.now(),per=Math.round(draft.amount/c*100)/100;
       const baseDesc=(draft.desc||draft.category||"Compra").trim();
+      const gid="g"+base;
       for(let i=0;i<c;i++){
         const amt=i===c-1?Math.round((draft.amount-per*(c-1))*100)/100:per;
-        state.transactions.push({id:"t"+base+"_"+i,type:draft.type,amount:amt,category:draft.category,date:addMonths(draft.date,i),desc:`${baseDesc} (${i+1}/${c})`,cardId:draft.cardId,responsavel:draft.responsavel,created:base+i});
+        state.transactions.push({id:"t"+base+"_"+i,type:draft.type,amount:amt,category:draft.category,date:addMonths(draft.date,i),desc:`${baseDesc} (${i+1}/${c})`,cardId:draft.cardId,responsavel:draft.responsavel,created:base+i,groupId:gid});
       }
       toast(`${c} parcelas criadas`);
     }
     else{draft.id="t"+Date.now()+Math.random().toString(36).slice(2,6);draft.created=Date.now();state.transactions.push({...draft});toast("Lançamento salvo");}
     save();closeSheet();
   });
-  $("btnDelete").addEventListener("click",()=>{if(confirm("Excluir este lançamento?")){state.transactions=state.transactions.filter(x=>x.id!==draft.id);save();closeSheet();toast("Excluído");}});
+  $("btnDelete").addEventListener("click",()=>{
+    if(draft.groupId){
+      const grp=state.transactions.filter(t=>t.groupId===draft.groupId);
+      if(confirm(`Este lançamento faz parte de um parcelamento com ${grp.length} parcela(s).\n\nOK → excluir TODAS as parcelas\nCancelar → excluir só esta`)){
+        state.transactions=state.transactions.filter(t=>t.groupId!==draft.groupId);toast(`${grp.length} parcelas excluídas`);
+      }else{state.transactions=state.transactions.filter(x=>x.id!==draft.id);toast("Parcela excluída");}
+    }else{
+      if(!confirm("Excluir este lançamento?"))return;
+      state.transactions=state.transactions.filter(x=>x.id!==draft.id);toast("Excluído");
+    }
+    save();closeSheet();
+  });
   $("fab").addEventListener("click",()=>openSheet(null));
 
   // ---------- MODAL CARTÃO ----------
@@ -753,6 +816,7 @@
   $("btnReset").addEventListener("click",()=>{if(confirm("Apagar TUDO? Exporte um backup antes se quiser guardar.")){state={transactions:[],cards:[],people:[],customCats:{income:[],expense:[]},lastBackup:state.lastBackup};cardFilter=null;save();toast("Dados apagados");}});
 
   render();
+  if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').then(r=>{r.addEventListener('updatefound',()=>{const w=r.installing;w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller)toast('Nova versão disponível — feche e reabra o app');});});});}
 })();
 </script>
 </body>

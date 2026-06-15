@@ -36,7 +36,7 @@
   .monthbar{display:flex;align-items:center;justify-content:space-between;margin-top:20px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:6px}
   .monthbar button{width:40px;height:36px;border-radius:10px;color:var(--muted);font-size:20px;display:flex;align-items:center;justify-content:center}
   .monthbar button:active{background:var(--panel-2)}
-  .monthbar .m{font-weight:600;font-size:15px;text-transform:capitalize}
+  .monthbar .m{font-weight:600;font-size:15px}
   .summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
   .summary .box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
   .summary .box span{display:block;font-size:12px;color:var(--muted);margin-bottom:3px}
@@ -201,7 +201,7 @@
 <body>
 
 <header>
-  <div class="brand">livro&#8209;caixa · <b>Saldo</b> <span style="margin-left:auto;font-size:11px;color:var(--muted-2);letter-spacing:.02em">v1.5</span></div>
+  <div class="brand">livro&#8209;caixa · <b>Saldo</b> <span style="margin-left:auto;font-size:11px;color:var(--muted-2);letter-spacing:.02em">v1.6</span></div>
   <div class="hero-label">Saldo na conta</div>
   <div class="hero-balance" id="heroBalance">R$ 0<span class="cents">,00</span></div>
   <div class="monthbar">
@@ -388,7 +388,7 @@
   }
   const MESES=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
   const MESES_SHORT=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
-  function mlabel(d){return MESES[d.getMonth()]+" de "+d.getFullYear();}
+  function mlabel(d){const s=MESES[d.getMonth()];return s.charAt(0).toUpperCase()+s.slice(1)+" de "+d.getFullYear();}
   function mshort(mk){return MESES_SHORT[parseInt(mk.slice(5,7))-1];}
 
   const $=id=>document.getElementById(id);
@@ -526,11 +526,18 @@
     let fhtml=`<button class="chip ${!cardFilter?"sel":""}" data-f="">Todos</button>`;
     fhtml+=state.cards.map(c=>`<button class="chip ${cardFilter===c.id?"sel":""}" data-f="${c.id}">${escapeHtml(c.name)}</button>`).join("");
     ff.innerHTML=fhtml;
-    ff.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>{cardFilter=c.dataset.f||null;render();}));
-    // lista de compras (com filtro)
-    let ctx=monthTx.filter(t=>t.cardId);
+    ff.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>{
+      cardFilter=c.dataset.f||null;
+      ff.querySelectorAll(".chip").forEach(x=>x.classList.toggle("sel",(x.dataset.f||null)===cardFilter));
+      renderCardTx(mk);
+    }));
+    renderCardTx(mk);
+  }
+
+  function renderCardTx(mk){
+    let ctx=state.transactions.filter(t=>txMonthKey(t)===mk&&t.cardId);
     if(cardFilter)ctx=ctx.filter(t=>t.cardId===cardFilter);
-    ctx=ctx.sort((a,b)=>b.date<a.date?-1:b.date>a.date?1:b.created-a.created);
+    ctx=ctx.sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:b.created-a.created);
     const ctl=$("cardTxList");
     if(!ctx.length){ctl.innerHTML=`<div class="card" style="color:var(--muted);font-size:13.5px;text-align:center">${cardFilter?"Sem compras neste cartão no mês.":"Sem compras no cartão neste mês."}</div>`;}
     else{

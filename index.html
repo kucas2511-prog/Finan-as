@@ -51,8 +51,9 @@
   .view{display:none}
   .view.active{display:block;animation:fade .25s ease}
   @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-  .section-title{font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.03em;margin:24px 4px 10px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+  .section-title{font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.03em;margin:24px 4px 10px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;gap:8px}
   .section-title .add{color:var(--gold);font-size:13px;font-weight:700;text-transform:none;letter-spacing:0}
+  .section-title .tot{margin-left:auto;font-family:var(--mono);font-variant-numeric:tabular-nums;text-transform:none}
 
   .day-group{margin-bottom:14px}
   .day-head{display:flex;justify-content:space-between;align-items:baseline;padding:0 4px 6px;color:var(--muted);font-size:12px;font-weight:600}
@@ -74,7 +75,6 @@
   .empty small{color:var(--muted)}
 
   .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
-  .card h3{margin:0 0 14px;font-size:14px;font-weight:600}
   .barrow{display:flex;align-items:center;gap:10px;margin-bottom:11px}
   .barrow .lbl{width:96px;flex:none;font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .barrow .track{flex:1;height:9px;background:var(--panel-2);border-radius:6px;overflow:hidden}
@@ -89,12 +89,11 @@
   .legend{display:flex;gap:16px;margin-top:12px;font-size:12px;color:var(--muted)}
   .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 
-  /* ---- CARTÕES ---- */
   .receber-total{background:var(--panel);border:1px solid rgba(229,178,93,.35);border-radius:16px;padding:18px;margin-bottom:14px}
   .receber-total .lab{font-size:12.5px;color:var(--muted);font-weight:600}
   .receber-total .big{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:30px;font-weight:700;color:var(--gold);margin-top:4px;letter-spacing:-.02em}
-  .person{display:flex;align-items:center;justify-content:space-between;padding:12px 4px;border-top:1px solid var(--line)}
-  .person:first-of-type{border-top:1px solid var(--line);margin-top:12px}
+  .person{display:flex;align-items:center;justify-content:space-between;padding:12px 4px;border-top:1px solid var(--line);margin-top:0}
+  .person:first-of-type{margin-top:12px}
   .person .nm{font-weight:600;font-size:15px}
   .person .am{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:600;color:var(--gold)}
   .person .right{display:flex;align-items:center;gap:12px}
@@ -109,6 +108,22 @@
   .cardrow .tot{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:15px;font-weight:600;text-align:right;white-space:nowrap}
   .cardrow .tot small{display:block;font-size:11px;color:var(--muted);font-weight:500}
 
+  /* ---- RESUMO ANUAL ---- */
+  details.erow{background:var(--panel);border:1px solid var(--line);border-radius:14px;margin-bottom:8px;overflow:hidden}
+  details.erow summary{list-style:none;display:flex;align-items:center;gap:10px;padding:14px;cursor:pointer;font-weight:600}
+  details.erow summary::-webkit-details-marker{display:none}
+  details.erow summary .mn{flex:1;text-transform:capitalize}
+  details.erow summary .val{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  details.erow summary .val.pos{color:var(--income)} details.erow summary .val.neg{color:var(--expense)}
+  details.erow summary::after{content:"›";color:var(--muted-2);font-size:17px;transition:transform .2s}
+  details.erow[open] summary::after{transform:rotate(90deg)}
+  details.erow[data-empty] summary{opacity:.5}
+  details.erow .detail{padding:2px 14px 14px;border-top:1px solid var(--line)}
+  .brk{display:flex;justify-content:space-between;font-size:13.5px;padding:7px 0;color:var(--muted)}
+  .brk .bv{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--text)}
+  .brk-h{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted-2);font-weight:700;margin:12px 0 2px}
+  .muted-line{color:var(--muted);font-size:13px;padding:8px 0}
+
   .row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:15px 16px;background:var(--panel);border:1px solid var(--line);border-radius:14px;margin-bottom:10px}
   .row .t{font-weight:600;font-size:15px}
   .row .s{font-size:12.5px;color:var(--muted);margin-top:2px}
@@ -118,11 +133,11 @@
   .row .act.danger{color:var(--expense)}
   .backup-warn{font-size:12.5px;color:var(--muted);line-height:1.5;padding:4px;margin-top:6px}
 
-  nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:rgba(15,20,25,.86);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--line);padding:8px 6px calc(8px + env(safe-area-inset-bottom));z-index:40}
-  nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted-2);font-size:10.5px;font-weight:600;padding:6px 2px}
+  nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:rgba(15,20,25,.86);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--line);padding:8px 4px calc(8px + env(safe-area-inset-bottom));z-index:40}
+  nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted-2);font-size:10px;font-weight:600;padding:6px 1px}
   nav button.active{color:var(--gold)}
-  nav button .ic{font-size:19px;line-height:1}
-  .fab{position:fixed;right:20px;bottom:calc(82px + env(safe-area-inset-bottom));width:58px;height:58px;border-radius:50%;background:var(--gold);color:#11171E;font-size:30px;font-weight:300;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);z-index:45}
+  nav button .ic{font-size:18px;line-height:1}
+  .fab{position:fixed;right:18px;bottom:calc(82px + env(safe-area-inset-bottom));width:56px;height:56px;border-radius:50%;background:var(--gold);color:#11171E;font-size:29px;font-weight:300;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);z-index:45}
   .fab:active{transform:scale(.94)}
 
   .scrim{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:50;display:none;align-items:flex-end}
@@ -186,8 +201,18 @@
     <div id="receberCard"></div>
     <div class="section-title">Meus cartões <button class="add" id="addCardBtn">+ Adicionar</button></div>
     <div id="cardsList"></div>
+    <div class="section-title">Pessoas <button class="add" id="addPersonBtn">+ Adicionar</button></div>
+    <div id="peopleList"></div>
     <div class="section-title">Compras no cartão · mês</div>
     <div id="cardTxList"></div>
+  </section>
+
+  <section class="view" id="view-year">
+    <div class="monthbar" style="margin-top:18px"><button id="prevYear">‹</button><div class="m mono" id="yearLabel">—</div><button id="nextYear">›</button></div>
+    <div class="section-title">Meu resultado · ano <span class="tot" id="yearMineTotal"></span></div>
+    <div id="yearMine"></div>
+    <div class="section-title">A receber · ano <span class="tot" id="yearRecTotal" style="color:var(--gold)"></span></div>
+    <div id="yearRec"></div>
   </section>
 
   <section class="view" id="view-charts">
@@ -201,7 +226,7 @@
     <div class="section-title">Backup e dados</div>
     <div class="row"><div><div class="t">Exportar JSON</div><div class="s" id="backupStatus">Salve o arquivo nos seus Arquivos</div></div><button class="act gold" id="btnExport">Exportar</button></div>
     <div class="row"><div><div class="t">Importar JSON</div><div class="s">Restaura a partir de um backup</div></div><button class="act" id="btnImport">Importar</button><input type="file" id="fileInput" accept="application/json,.json" hidden></div>
-    <div class="row"><div><div class="t">Apagar tudo</div><div class="s">Remove lançamentos e cartões</div></div><button class="act danger" id="btnReset">Apagar</button></div>
+    <div class="row"><div><div class="t">Apagar tudo</div><div class="s">Remove lançamentos, cartões e pessoas</div></div><button class="act danger" id="btnReset">Apagar</button></div>
     <p class="backup-warn">Os dados ficam apenas neste aparelho, no armazenamento do navegador. O iOS pode limpar esse armazenamento se o app ficar muito tempo sem ser aberto — o backup em JSON é o que protege seus dados de verdade. Exporte de tempos em tempos.</p>
   </section>
 </main>
@@ -211,6 +236,7 @@
 <nav>
   <button class="active" data-view="tx"><span class="ic">≡</span>Lançamentos</button>
   <button data-view="cards"><span class="ic">▭</span>Cartões</button>
+  <button data-view="year"><span class="ic">▤</span>Resumo</button>
   <button data-view="charts"><span class="ic">▦</span>Gráficos</button>
   <button data-view="backup"><span class="ic">⤓</span>Backup</button>
 </nav>
@@ -252,6 +278,19 @@
   </div>
 </div>
 
+<!-- MODAL PESSOA -->
+<div class="scrim" id="scrimPerson">
+  <div class="sheet">
+    <h2 id="personSheetTitle">Nova pessoa</h2>
+    <div class="field"><label class="fl">Nome</label><input class="txt" id="personName" type="text" placeholder="ex.: Mãe, Irmão" autocapitalize="words" autocomplete="off"></div>
+    <div class="sheet-actions">
+      <button class="btn del" id="personDelete" style="display:none">Excluir</button>
+      <button class="btn ghost" id="personCancel">Cancelar</button>
+      <button class="btn primary" id="personSave" disabled>Salvar</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -268,11 +307,19 @@
 
   let state=load();
   let viewMonth=new Date(); viewMonth.setDate(1);
-  let draft=null, cardDraft=null;
+  let yearNum=new Date().getFullYear();
+  let draft=null, cardDraft=null, personDraft=null;
 
   function load(){
-    try{const r=JSON.parse(localStorage.getItem(KEY));if(r&&r.transactions){r.cards=r.cards||[];return r;}}catch(e){}
-    return {transactions:[],cards:[],lastBackup:null};
+    try{const r=JSON.parse(localStorage.getItem(KEY));if(r&&r.transactions){
+      r.cards=r.cards||[];
+      if(!Array.isArray(r.people)){
+        const names=[...new Set(r.transactions.map(t=>t.responsavel).filter(n=>n&&n!=="Eu"))];
+        r.people=names.map((n,i)=>({id:"p"+Date.now()+i,name:n}));
+      }
+      return r;
+    }}catch(e){}
+    return {transactions:[],cards:[],people:[],lastBackup:null};
   }
   function save(){localStorage.setItem(KEY,JSON.stringify(state));render();}
 
@@ -282,7 +329,6 @@
   function txMonthKey(t){return t.date.slice(0,7);}
   function catIcon(type,name){const f=(DEFAULT_CATS[type]||[]).find(c=>c[0]===name);return f?f[1]:"•";}
   function cardById(id){return state.cards.find(c=>c.id===id);}
-  function knownPeople(){const s=new Set();state.transactions.forEach(t=>{if(t.responsavel&&t.responsavel!=="Eu")s.add(t.responsavel);});return [...s];}
   function moneyHero(v){const s=fmtNum.format(Math.abs(v)).split(",");return `${v<0?"-":""}R$ ${s[0]}<span class="cents">,${s[1]}</span>`;}
   function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
   function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),1900);}
@@ -296,19 +342,19 @@
     const mk=monthKey(viewMonth);
     const monthTx=state.transactions.filter(t=>txMonthKey(t)===mk);
     const mineTx=monthTx.filter(isMine);
-    const inc=mineTx.filter(t=>t.type==="income").reduce((a,t)=>a+t.amount,0);
-    const exp=mineTx.filter(t=>t.type==="expense").reduce((a,t)=>a+t.amount,0);
-    $("sumIn").textContent=fmt.format(inc);
-    $("sumEx").textContent=fmt.format(exp);
+    $("sumIn").textContent=fmt.format(mineTx.filter(t=>t.type==="income").reduce((a,t)=>a+t.amount,0));
+    $("sumEx").textContent=fmt.format(mineTx.filter(t=>t.type==="expense").reduce((a,t)=>a+t.amount,0));
 
-    const receber=monthTx.filter(t=>!isMine(t)).reduce((a,t)=>a+t.amount,0);
+    const receber=monthTx.filter(t=>!isMine(t)&&t.type==="expense").reduce((a,t)=>a+t.amount,0);
     const banner=$("receberBanner");
     if(receber>0){banner.classList.add("show");$("receberVal").textContent=fmt.format(receber);}
     else banner.classList.remove("show");
 
     renderTxList(mineTx);
     renderCardsView(mk,monthTx);
+    renderPeople();
     renderCharts(mk);
+    renderYear();
     $("backupStatus").textContent=state.lastBackup?"Último backup: "+new Date(state.lastBackup).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}):"Você ainda não exportou nenhum backup";
   }
 
@@ -325,10 +371,9 @@
       html+=`<div class="day-group"><div class="day-head"><span>${dlabel}</span><span class="dsub">${daySub>=0?"+":"−"}${fmtNum.format(Math.abs(daySub))}</span></div>`;
       list.forEach(t=>{
         const c=cardById(t.cardId);
-        html+=`<div class="tx" data-id="${t.id}">
-          <div class="dot">${catIcon(t.type,t.category)}</div>
+        html+=`<div class="tx" data-id="${t.id}"><div class="dot">${catIcon(t.type,t.category)}</div>
           <div class="info"><div class="cat">${t.category}</div>
-          <div class="desc">${c?`<span class="pill card">${escapeHtml(c.name)}</span>`:""}${t.desc?escapeHtml(t.desc):(c?"":"")}</div></div>
+          <div class="desc">${c?`<span class="pill card">${escapeHtml(c.name)}</span>`:""}${t.desc?escapeHtml(t.desc):""}</div></div>
           <div class="amt ${t.type}">${t.type==="income"?"+":"−"} ${fmtNum.format(t.amount)}</div></div>`;
       });
       html+="</div>";
@@ -338,8 +383,7 @@
   }
 
   function renderCardsView(mk,monthTx){
-    // a receber por pessoa
-    const others=monthTx.filter(t=>!isMine(t));
+    const others=monthTx.filter(t=>!isMine(t)&&t.type==="expense");
     const byPerson={};others.forEach(t=>{byPerson[t.responsavel]=(byPerson[t.responsavel]||0)+t.amount;});
     const total=others.reduce((a,t)=>a+t.amount,0);
     const people=Object.entries(byPerson).sort((a,b)=>b[1]-a[1]);
@@ -351,7 +395,6 @@
     }else{
       rc.innerHTML=`<div class="card" style="color:var(--muted);font-size:13.5px;text-align:center">Ninguém usou seus cartões neste mês.</div>`;
     }
-    // lista de cartões
     const cl=$("cardsList");
     if(!state.cards.length){
       cl.innerHTML=`<div class="empty" style="padding:30px"><div class="big">💳</div><p>Nenhum cartão cadastrado</p><small>Toque em “+ Adicionar” acima.</small></div>`;
@@ -359,23 +402,19 @@
       cl.innerHTML=state.cards.map(c=>{
         const tx=monthTx.filter(t=>t.cardId===c.id);
         const tot=tx.reduce((a,t)=>a+t.amount,0);
-        const mine=tx.filter(isMine).reduce((a,t)=>a+t.amount,0);
-        const out=tot-mine;
-        return `<div class="cardrow" data-card="${c.id}">
-          <div class="chip-c" style="background:${c.color}">${escapeHtml(c.name[0]||"•").toUpperCase()}</div>
+        const out=tot-tx.filter(isMine).reduce((a,t)=>a+t.amount,0);
+        return `<div class="cardrow" data-card="${c.id}"><div class="chip-c" style="background:${c.color}">${escapeHtml(c.name[0]||"•").toUpperCase()}</div>
           <div class="meta"><div class="nm">${escapeHtml(c.name)}</div><div class="sub">vence dia ${c.due||"—"} · ${tx.length} compra(s) no mês</div></div>
           <div class="tot">${fmt.format(tot)}${out>0?`<small>${fmt.format(out)} de terceiros</small>`:""}</div></div>`;
       }).join("");
       cl.querySelectorAll(".cardrow").forEach(n=>n.addEventListener("click",()=>openCardSheet(n.dataset.card)));
     }
-    // compras no cartão (mês), todos responsáveis
     const ctx=monthTx.filter(t=>t.cardId).sort((a,b)=>b.date<a.date?-1:b.date>a.date?1:b.created-a.created);
     const ctl=$("cardTxList");
     if(!ctx.length){ctl.innerHTML=`<div class="card" style="color:var(--muted);font-size:13.5px;text-align:center">Sem compras no cartão neste mês.</div>`;}
     else{
       ctl.innerHTML=ctx.map(t=>{const c=cardById(t.cardId);
-        return `<div class="tx" data-id="${t.id}">
-          <div class="dot">${catIcon(t.type,t.category)}</div>
+        return `<div class="tx" data-id="${t.id}"><div class="dot">${catIcon(t.type,t.category)}</div>
           <div class="info"><div class="cat">${t.category}</div>
           <div class="desc"><span class="pill ${isMine(t)?"":"card"}">${isMine(t)?"Eu":escapeHtml(t.responsavel)}</span>${c?escapeHtml(c.name):""}${t.desc?" · "+escapeHtml(t.desc):""}</div></div>
           <div class="amt expense">− ${fmtNum.format(t.amount)}</div></div>`;
@@ -384,13 +423,60 @@
     }
   }
 
+  function renderPeople(){
+    const el=$("peopleList");
+    if(!state.people.length){el.innerHTML=`<div class="empty" style="padding:24px"><div class="big">👥</div><p>Nenhuma pessoa cadastrada</p><small>Toque em “+ Adicionar”.</small></div>`;return;}
+    el.innerHTML=state.people.map(p=>`<div class="cardrow" data-person="${p.id}"><div class="chip-c" style="background:var(--panel-2);color:var(--text)">${escapeHtml((p.name[0]||"?")).toUpperCase()}</div><div class="meta"><div class="nm">${escapeHtml(p.name)}</div></div></div>`).join("");
+    el.querySelectorAll(".cardrow").forEach(n=>n.addEventListener("click",()=>openPersonSheet(n.dataset.person)));
+  }
+
+  function catBreak(incCat,expCat){
+    let h="";
+    const incE=Object.entries(incCat).sort((a,b)=>b[1]-a[1]);
+    const expE=Object.entries(expCat).sort((a,b)=>b[1]-a[1]);
+    if(incE.length)h+=`<div class="brk-h">Entradas</div>`+incE.map(([n,v])=>`<div class="brk"><span>${n}</span><span class="bv" style="color:var(--income)">${fmt.format(v)}</span></div>`).join("");
+    if(expE.length)h+=`<div class="brk-h">Saídas</div>`+expE.map(([n,v])=>`<div class="brk"><span>${n}</span><span class="bv">${fmt.format(v)}</span></div>`).join("");
+    return h;
+  }
+  function recBreak(others){
+    const byP={},byC={};
+    others.forEach(t=>{byP[t.responsavel]=(byP[t.responsavel]||0)+t.amount;byC[t.category]=(byC[t.category]||0)+t.amount;});
+    let h=`<div class="brk-h">Por pessoa</div>`+Object.entries(byP).sort((a,b)=>b[1]-a[1]).map(([n,v])=>`<div class="brk"><span>${escapeHtml(n)}</span><span class="bv" style="color:var(--gold)">${fmt.format(v)}</span></div>`).join("");
+    h+=`<div class="brk-h">Por categoria</div>`+Object.entries(byC).sort((a,b)=>b[1]-a[1]).map(([n,v])=>`<div class="brk"><span>${n}</span><span class="bv">${fmt.format(v)}</span></div>`).join("");
+    return h;
+  }
+  function renderYear(){
+    $("yearLabel").textContent=yearNum;
+    let mineHtml="",recHtml="",yearNet=0,yearRec=0;
+    for(let m=0;m<12;m++){
+      const mk=yearNum+"-"+String(m+1).padStart(2,"0");
+      const tx=state.transactions.filter(t=>txMonthKey(t)===mk);
+      const mine=tx.filter(isMine);
+      const inc=mine.filter(t=>t.type==="income").reduce((a,t)=>a+t.amount,0);
+      const exp=mine.filter(t=>t.type==="expense").reduce((a,t)=>a+t.amount,0);
+      const net=inc-exp;yearNet+=net;
+      const incCat={},expCat={};mine.forEach(t=>{const o=t.type==="income"?incCat:expCat;o[t.category]=(o[t.category]||0)+t.amount;});
+      const mname=new Date(mk+"-01T00:00:00").toLocaleDateString("pt-BR",{month:"long"});
+      const hasMine=mine.length>0;
+      mineHtml+=`<details class="erow"${hasMine?"":" data-empty"}><summary><span class="mn">${mname}</span><span class="val ${net>=0?"pos":"neg"}">${fmt.format(net)}</span></summary><div class="detail">${hasMine?catBreak(incCat,expCat):'<div class="muted-line">Sem lançamentos</div>'}</div></details>`;
+      const others=tx.filter(t=>!isMine(t)&&t.type==="expense");
+      const rec=others.reduce((a,t)=>a+t.amount,0);yearRec+=rec;
+      const hasRec=others.length>0;
+      recHtml+=`<details class="erow"${hasRec?"":" data-empty"}><summary><span class="mn">${mname}</span><span class="val" style="color:${hasRec?"var(--gold)":"var(--muted)"}">${fmt.format(rec)}</span></summary><div class="detail">${hasRec?recBreak(others):'<div class="muted-line">Ninguém usou seus cartões</div>'}</div></details>`;
+    }
+    $("yearMineTotal").textContent=fmt.format(yearNet);
+    $("yearMineTotal").style.color=yearNet>=0?"var(--income)":"var(--expense)";
+    $("yearRecTotal").textContent=fmt.format(yearRec);
+    $("yearMine").innerHTML=mineHtml;
+    $("yearRec").innerHTML=recHtml;
+  }
+
   function renderCharts(mk){
     const mine=state.transactions.filter(t=>txMonthKey(t)===mk&&isMine(t)&&t.type==="expense");
     const cat={};mine.forEach(t=>{cat[t.category]=(cat[t.category]||0)+t.amount;});
     const entries=Object.entries(cat).sort((a,b)=>b[1]-a[1]);
     const max=Math.max(1,...entries.map(e=>e[1]));
     $("catCard").innerHTML=entries.length?entries.map(([n,v])=>`<div class="barrow"><div class="lbl">${n}</div><div class="track"><div class="fill" style="width:${(v/max*100).toFixed(1)}%"></div></div><div class="val">${fmtNum.format(v)}</div></div>`).join(""):`<div style="color:var(--muted);font-size:13.5px;text-align:center;padding:14px">Sem saídas suas neste mês.</div>`;
-
     const months=[];const base=new Date(viewMonth);
     for(let i=5;i>=0;i--){const d=new Date(base);d.setMonth(d.getMonth()-i);months.push(monthKey(d));}
     const data=months.map(m=>{const tx=state.transactions.filter(t=>txMonthKey(t)===m&&isMine(t));return{m,in:tx.filter(t=>t.type==="income").reduce((a,t)=>a+t.amount,0),ex:tx.filter(t=>t.type==="expense").reduce((a,t)=>a+t.amount,0)};});
@@ -400,34 +486,20 @@
 
   // ---------- COBRANÇA POR PESSOA ----------
   function buildPersonText(person,mk){
-    const tx=state.transactions.filter(t=>txMonthKey(t)===mk&&(t.responsavel||"Eu")===person&&t.type==="expense")
-      .sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:a.created-b.created);
+    const tx=state.transactions.filter(t=>txMonthKey(t)===mk&&(t.responsavel||"Eu")===person&&t.type==="expense").sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:a.created-b.created);
     const total=tx.reduce((a,t)=>a+t.amount,0);
     const mes=new Date(mk+"-01T00:00:00").toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
     const lines=[`Resumo do cartão — ${mes}`,`Para: ${person}`,""];
-    tx.forEach(t=>{
-      const d=new Date(t.date+"T00:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"});
-      const c=cardById(t.cardId);
-      const parts=[d,t.category];
-      if(t.desc)parts.push(t.desc);
-      if(c)parts.push(c.name);
-      lines.push(`• ${parts.join(" · ")} — ${fmt.format(t.amount)}`);
-    });
+    tx.forEach(t=>{const d=new Date(t.date+"T00:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"});const c=cardById(t.cardId);const parts=[d,t.category];if(t.desc)parts.push(t.desc);if(c)parts.push(c.name);lines.push(`• ${parts.join(" · ")} — ${fmt.format(t.amount)}`);});
     lines.push("","———————————",`Total a pagar: ${fmt.format(total)}`);
     return lines.join("\n");
   }
   async function sharePerson(person,mk){
     const text=buildPersonText(person,mk);
-    if(navigator.share){
-      try{await navigator.share({title:`Cobrança — ${person}`,text});return;}
-      catch(e){if(e&&e.name==="AbortError")return;}
-    }
-    // fallback: copiar + baixar .txt
+    if(navigator.share){try{await navigator.share({title:`Cobrança — ${person}`,text});return;}catch(e){if(e&&e.name==="AbortError")return;}}
     try{if(navigator.clipboard)await navigator.clipboard.writeText(text);}catch(e){}
-    const blob=new Blob([text],{type:"text/plain;charset=utf-8"});
-    const url=URL.createObjectURL(blob);const a=document.createElement("a");
-    a.href=url;a.download=`cobranca-${person.replace(/\s+/g,"_")}-${mk}.txt`;
-    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    const blob=new Blob([text],{type:"text/plain;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");
+    a.href=url;a.download=`cobranca-${person.replace(/\s+/g,"_")}-${mk}.txt`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
     toast("Texto copiado e .txt baixado");
   }
 
@@ -443,11 +515,7 @@
   }
   function closeSheet(){$("scrim").classList.remove("open");draft=null;}
   function syncTypeSeg(){document.querySelectorAll("#typeSeg button").forEach(b=>{b.classList.remove("on-ex","on-in");if(b.dataset.type===draft.type)b.classList.add(draft.type==="income"?"on-in":"on-ex");});}
-  function syncCardFields(){
-    const showCard=draft.type==="expense";
-    $("fieldCard").style.display=showCard?"":"none";
-    $("fieldResp").style.display=(showCard&&draft.cardId)?"":"none";
-  }
+  function syncCardFields(){const showCard=draft.type==="expense";$("fieldCard").style.display=showCard?"":"none";$("fieldResp").style.display=(showCard&&draft.cardId)?"":"none";}
   function renderChips(){
     const w=$("catChips");
     w.innerHTML=DEFAULT_CATS[draft.type].map(([n,ic])=>`<button class="chip ${draft.category===n?"sel":""}" data-cat="${n}">${ic} ${n}</button>`).join("");
@@ -458,24 +526,17 @@
     let html=`<button class="chip ${!draft.cardId?"sel":""}" data-card="">💵 Conta/dinheiro</button>`;
     html+=state.cards.map(c=>`<button class="chip ${draft.cardId===c.id?"sel":""}" data-card="${c.id}">💳 ${escapeHtml(c.name)}</button>`).join("");
     w.innerHTML=html;
-    w.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>{
-      draft.cardId=c.dataset.card||null;
-      if(!draft.cardId)draft.responsavel="Eu";
-      renderCardChips();renderRespChips();syncCardFields();validate();
-    }));
+    w.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>{draft.cardId=c.dataset.card||null;if(!draft.cardId)draft.responsavel="Eu";renderCardChips();renderRespChips();syncCardFields();validate();}));
   }
   function renderRespChips(){
     const w=$("respChips");
-    const people=knownPeople();
+    const names=state.people.map(p=>p.name);
     let html=`<button class="chip ${draft.responsavel==="Eu"?"sel":""}" data-r="Eu">Eu</button>`;
-    html+=people.map(p=>`<button class="chip ${draft.responsavel===p?"sel":""}" data-r="${escapeHtml(p)}">${escapeHtml(p)}</button>`).join("");
-    html+=`<button class="chip" data-r="__new">+ Pessoa</button>`;
+    html+=state.people.map(p=>`<button class="chip ${draft.responsavel===p.name?"sel":""}" data-r="${escapeHtml(p.name)}">${escapeHtml(p.name)}</button>`).join("");
+    if(draft.responsavel&&draft.responsavel!=="Eu"&&!names.includes(draft.responsavel))html+=`<button class="chip sel" data-r="${escapeHtml(draft.responsavel)}">${escapeHtml(draft.responsavel)}</button>`;
     w.innerHTML=html;
-    w.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>{
-      if(c.dataset.r==="__new"){const nm=(prompt("Nome de quem usou o cartão:")||"").trim();if(nm)draft.responsavel=nm;}
-      else draft.responsavel=c.dataset.r;
-      renderRespChips();validate();
-    }));
+    w.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>{draft.responsavel=c.dataset.r;renderRespChips();validate();}));
+    if(!state.people.length){const hint=document.createElement("div");hint.style.cssText="font-size:12.5px;color:var(--muted);margin-top:8px;width:100%";hint.textContent="Cadastre pessoas na aba Cartões para selecioná-las aqui.";w.appendChild(hint);}
   }
   function parseAmount(str){if(!str)return 0;let s=str.replace(/[^\d,.-]/g,"").replace(/\.(?=\d{3})/g,"").replace(",",".");const n=parseFloat(s);return isNaN(n)?0:Math.abs(n);}
   function validate(){$("btnSave").disabled=!(draft&&draft.amount>0&&draft.category);}
@@ -499,16 +560,14 @@
   function openCardSheet(id){
     if(id){const c=cardById(id);cardDraft={...c};$("cardSheetTitle").textContent="Editar cartão";$("cardDelete").style.display="";}
     else{cardDraft={id:null,name:"",due:"",color:CARD_COLORS[state.cards.length%CARD_COLORS.length]};$("cardSheetTitle").textContent="Novo cartão";$("cardDelete").style.display="none";}
-    $("cardName").value=cardDraft.name;$("cardDue").value=cardDraft.due||"";
-    renderColorChips();validateCard();
-    $("scrimCard").classList.add("open");
+    $("cardName").value=cardDraft.name;$("cardDue").value=cardDraft.due||"";renderColorChips();validateCard();$("scrimCard").classList.add("open");
   }
   function closeCardSheet(){$("scrimCard").classList.remove("open");cardDraft=null;}
   function renderColorChips(){const w=$("cardColors");w.innerHTML=CARD_COLORS.map(c=>`<button class="colorchip ${cardDraft.color===c?"sel":""}" data-c="${c}" style="background:${c}"></button>`).join("");w.querySelectorAll(".colorchip").forEach(b=>b.addEventListener("click",()=>{cardDraft.color=b.dataset.c;renderColorChips();}));}
   function validateCard(){$("cardSave").disabled=!(cardDraft&&cardDraft.name.trim());}
   $("addCardBtn").addEventListener("click",()=>openCardSheet(null));
   $("cardName").addEventListener("input",e=>{cardDraft.name=e.target.value;validateCard();});
-  $("cardDue").addEventListener("input",e=>{let v=e.target.value.replace(/\D/g,"");if(v){let n=Math.min(31,Math.max(1,parseInt(v)));v=String(n);}e.target.value=v;cardDraft.due=v;});
+  $("cardDue").addEventListener("input",e=>{let v=e.target.value.replace(/\D/g,"");if(v){v=String(Math.min(31,Math.max(1,parseInt(v))));}e.target.value=v;cardDraft.due=v;});
   $("cardCancel").addEventListener("click",closeCardSheet);
   $("scrimCard").addEventListener("click",e=>{if(e.target===$("scrimCard"))closeCardSheet();});
   $("cardSave").addEventListener("click",()=>{
@@ -516,34 +575,49 @@
     else{cardDraft.id="c"+Date.now()+Math.random().toString(36).slice(2,5);state.cards.push({...cardDraft});toast("Cartão adicionado");}
     save();closeCardSheet();
   });
-  $("cardDelete").addEventListener("click",()=>{
-    if(confirm("Excluir este cartão? As compras ligadas a ele viram “conta/dinheiro”, mas continuam registradas.")){
-      state.transactions.forEach(t=>{if(t.cardId===cardDraft.id)t.cardId=null;});
-      state.cards=state.cards.filter(c=>c.id!==cardDraft.id);
-      save();closeCardSheet();toast("Cartão excluído");
-    }
+  $("cardDelete").addEventListener("click",()=>{if(confirm("Excluir este cartão? As compras ligadas a ele viram “conta/dinheiro”, mas continuam registradas.")){state.transactions.forEach(t=>{if(t.cardId===cardDraft.id)t.cardId=null;});state.cards=state.cards.filter(c=>c.id!==cardDraft.id);save();closeCardSheet();toast("Cartão excluído");}});
+
+  // ---------- MODAL PESSOA ----------
+  function openPersonSheet(id){
+    if(id){const p=state.people.find(x=>x.id===id);personDraft={...p};$("personSheetTitle").textContent="Editar pessoa";$("personDelete").style.display="";}
+    else{personDraft={id:null,name:""};$("personSheetTitle").textContent="Nova pessoa";$("personDelete").style.display="none";}
+    $("personName").value=personDraft.name;validatePerson();$("scrimPerson").classList.add("open");setTimeout(()=>$("personName").focus(),60);
+  }
+  function closePersonSheet(){$("scrimPerson").classList.remove("open");personDraft=null;}
+  function validatePerson(){$("personSave").disabled=!(personDraft&&personDraft.name.trim());}
+  $("addPersonBtn").addEventListener("click",()=>openPersonSheet(null));
+  $("personName").addEventListener("input",e=>{personDraft.name=e.target.value;validatePerson();});
+  $("personName").addEventListener("keydown",e=>{if(e.key==="Enter"&&!$("personSave").disabled){e.preventDefault();$("personSave").click();}});
+  $("personCancel").addEventListener("click",closePersonSheet);
+  $("scrimPerson").addEventListener("click",e=>{if(e.target===$("scrimPerson"))closePersonSheet();});
+  $("personSave").addEventListener("click",()=>{
+    const nm=personDraft.name.trim();
+    if(personDraft.id){const old=state.people.find(p=>p.id===personDraft.id).name;const i=state.people.findIndex(p=>p.id===personDraft.id);state.people[i]={...personDraft,name:nm};if(old!==nm)state.transactions.forEach(t=>{if(t.responsavel===old)t.responsavel=nm;});toast("Pessoa atualizada");}
+    else{state.people.push({id:"p"+Date.now()+Math.random().toString(36).slice(2,5),name:nm});toast("Pessoa adicionada");}
+    save();closePersonSheet();
   });
+  $("personDelete").addEventListener("click",()=>{if(confirm("Excluir esta pessoa? Os lançamentos antigos dela continuam registrados; ela só sai da lista de seleção.")){state.people=state.people.filter(p=>p.id!==personDraft.id);save();closePersonSheet();toast("Pessoa excluída");}});
 
   // ---------- NAV ----------
   document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));$("view-"+b.dataset.view).classList.add("active");}));
   $("receberBanner").addEventListener("click",()=>document.querySelector('nav button[data-view="cards"]').click());
   $("prevMonth").addEventListener("click",()=>{viewMonth.setMonth(viewMonth.getMonth()-1);render();});
   $("nextMonth").addEventListener("click",()=>{viewMonth.setMonth(viewMonth.getMonth()+1);render();});
+  $("prevYear").addEventListener("click",()=>{yearNum--;renderYear();});
+  $("nextYear").addEventListener("click",()=>{yearNum++;renderYear();});
 
   // ---------- BACKUP ----------
   $("btnExport").addEventListener("click",()=>{
     state.lastBackup=Date.now();localStorage.setItem(KEY,JSON.stringify(state));
-    const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
-    const url=URL.createObjectURL(blob);const a=document.createElement("a");
-    a.href=url;a.download=`saldo-backup-${new Date().toISOString().slice(0,10)}.json`;
-    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");
+    a.href=url;a.download=`saldo-backup-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
     render();toast("Backup gerado");
   });
   $("btnImport").addEventListener("click",()=>$("fileInput").click());
   $("fileInput").addEventListener("change",e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
-    r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.transactions))throw new Error();d.cards=d.cards||[];if(confirm(`Importar ${d.transactions.length} lançamento(s) e ${d.cards.length} cartão(ões)? Substitui os dados atuais.`)){state=d;save();toast("Backup restaurado");}}catch(err){alert("Arquivo inválido. Selecione um backup .json deste app.");}e.target.value="";};
+    r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.transactions))throw new Error();d.cards=d.cards||[];d.people=Array.isArray(d.people)?d.people:[];if(confirm(`Importar ${d.transactions.length} lançamento(s), ${d.cards.length} cartão(ões) e ${d.people.length} pessoa(s)? Substitui os dados atuais.`)){state=d;save();toast("Backup restaurado");}}catch(err){alert("Arquivo inválido. Selecione um backup .json deste app.");}e.target.value="";};
     r.readAsText(f);});
-  $("btnReset").addEventListener("click",()=>{if(confirm("Apagar TUDO? Exporte um backup antes se quiser guardar.")){state={transactions:[],cards:[],lastBackup:state.lastBackup};save();toast("Dados apagados");}});
+  $("btnReset").addEventListener("click",()=>{if(confirm("Apagar TUDO? Exporte um backup antes se quiser guardar.")){state={transactions:[],cards:[],people:[],lastBackup:state.lastBackup};save();toast("Dados apagados");}});
 
   render();
 })();

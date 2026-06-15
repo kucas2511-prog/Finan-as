@@ -163,7 +163,9 @@
   .txt:focus,.sel:focus{border-color:var(--gold)}
   .cats{display:flex;flex-wrap:wrap;gap:8px}
   .chip{padding:9px 13px;border-radius:11px;background:var(--panel-2);border:1px solid var(--line);font-size:13.5px;font-weight:500}
-  .chip.sel{background:var(--gold);color:#11171E;border-color:var(--gold);font-weight:700}
+  .chip.sel{background:var(--gold);color:#11171E;border-color:var(--gold)}
+  #cardTxFilter{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+  #cardTxFilter .chip{flex:none;white-space:nowrap}
   .toggle-row{display:flex;align-items:center;justify-content:space-between;background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:15px}
   .toggle-row .tl{font-size:15px;font-weight:600}
   .toggle-row .ts{font-size:12px;color:var(--muted);margin-top:2px}
@@ -201,7 +203,7 @@
 <body>
 
 <header>
-  <div class="brand">livro&#8209;caixa · <b>Saldo</b> <span style="margin-left:auto;font-size:11px;color:var(--muted-2);letter-spacing:.02em">v1.9</span></div>
+  <div class="brand">livro&#8209;caixa · <b>Saldo</b> <span style="margin-left:auto;font-size:11px;color:var(--muted-2);letter-spacing:.02em">v2.0</span></div>
   <div class="hero-label">Saldo na conta</div>
   <div class="hero-balance" id="heroBalance">R$ 0<span class="cents">,00</span></div>
   <div class="monthbar">

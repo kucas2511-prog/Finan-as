@@ -201,7 +201,7 @@
 <body>
 
 <header>
-  <div class="brand">livro&#8209;caixa · <b>Saldo</b> <span style="margin-left:auto;font-size:11px;color:var(--muted-2);letter-spacing:.02em">v1.6</span></div>
+  <div class="brand">livro&#8209;caixa · <b>Saldo</b> <span style="margin-left:auto;font-size:11px;color:var(--muted-2);letter-spacing:.02em">v1.7</span></div>
   <div class="hero-label">Saldo na conta</div>
   <div class="hero-balance" id="heroBalance">R$ 0<span class="cents">,00</span></div>
   <div class="monthbar">
@@ -256,7 +256,8 @@
     <div class="row"><div><div class="t">Exportar JSON</div><div class="s" id="backupStatus">Salve o arquivo nos seus Arquivos</div></div><button class="act gold" id="btnExport">Exportar</button></div>
     <div class="row"><div><div class="t">Importar JSON</div><div class="s">Restaura a partir de um backup</div></div><button class="act" id="btnImport">Importar</button><input type="file" id="fileInput" accept="application/json,.json" hidden></div>
     <div class="row"><div><div class="t">Apagar tudo</div><div class="s">Remove lançamentos, cartões e pessoas</div></div><button class="act danger" id="btnReset">Apagar</button></div>
-    <p class="backup-warn">Os dados ficam apenas neste aparelho, no armazenamento do navegador. O iOS pode limpar esse armazenamento se o app ficar muito tempo sem ser aberto — o backup em JSON é o que protege seus dados de verdade. Exporte de tempos em tempos.</p>
+    <div class="row"><div><div class="t">Forçar atualização</div><div class="s">Limpa o cache e recarrega a versão mais nova</div></div><button class="act" id="btnForceUpdate">Atualizar</button></div>
+    <p class="backup-warn">Os dados ficam apenas neste aparelho, no armazenamento do navegador. O iOS pode limpar esse armazenamento se o app ficar muito tempo sem ser aberto — o backup em JSON é o que protege seus dados de verdade. Exporte de tempos em tempos. (Forçar atualização não apaga seus dados.)</p>
   </section>
 </main>
 
@@ -529,7 +530,7 @@
     ff.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>{
       cardFilter=c.dataset.f||null;
       ff.querySelectorAll(".chip").forEach(x=>x.classList.toggle("sel",(x.dataset.f||null)===cardFilter));
-      renderCardTx(mk);
+      requestAnimationFrame(()=>renderCardTx(mk));
     }));
     renderCardTx(mk);
   }
@@ -833,6 +834,12 @@
     r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.transactions))throw new Error();d.cards=d.cards||[];d.people=Array.isArray(d.people)?d.people:[];if(!d.customCats||!Array.isArray(d.customCats.income)||!Array.isArray(d.customCats.expense))d.customCats={income:[],expense:[]};if(confirm(`Importar ${d.transactions.length} lançamento(s), ${d.cards.length} cartão(ões) e ${d.people.length} pessoa(s)? Substitui os dados atuais.`)){state=d;cardFilter=null;save();toast("Backup restaurado");}}catch(err){alert("Arquivo inválido. Selecione um backup .json deste app.");}e.target.value="";};
     r.readAsText(f);});
   $("btnReset").addEventListener("click",()=>{if(confirm("Apagar TUDO? Exporte um backup antes se quiser guardar.")){state={transactions:[],cards:[],people:[],customCats:{income:[],expense:[]},lastBackup:state.lastBackup};cardFilter=null;save();toast("Dados apagados");}});
+  $("btnForceUpdate").addEventListener("click",async()=>{
+    toast("Limpando cache…");
+    try{if('caches'in window){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)));}}catch(e){}
+    try{if('serviceWorker'in navigator){const rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(r=>r.unregister()));}}catch(e){}
+    setTimeout(()=>location.reload(),400);
+  });
 
   render();
   if('serviceWorker' in navigator){

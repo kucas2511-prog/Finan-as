@@ -203,7 +203,7 @@
 <body>
 
 <header>
-  <div class="brand">livro&#8209;caixa · <b>Saldo</b> <span style="margin-left:auto;font-size:11px;color:var(--muted-2);letter-spacing:.02em">v2.3</span></div>
+  <div class="brand">livro&#8209;caixa · <b>Saldo</b> <span style="margin-left:auto;font-size:11px;color:var(--muted-2);letter-spacing:.02em">v2.4</span></div>
   <div class="hero-label">Saldo na conta</div>
   <div class="hero-balance" id="heroBalance">R$ 0<span class="cents">,00</span></div>
   <div class="monthbar">
@@ -437,12 +437,12 @@
     if(receber>0){banner.classList.add("show");$("receberVal").textContent=fmt.format(receber);}
     else banner.classList.remove("show");
 
-    renderTxList();
-    renderCardsView(mk,monthTx);
-    renderPeople();
-    renderCats();
-    renderCharts(mk);
-    renderYear();
+    try{renderTxList();}catch(e){console.error("renderTxList",e);}
+    try{renderCardsView(mk,monthTx);}catch(e){console.error("renderCardsView",e);}
+    try{renderPeople();}catch(e){console.error("renderPeople",e);}
+    try{renderCats();}catch(e){console.error("renderCats",e);}
+    try{renderCharts(mk);}catch(e){console.error("renderCharts",e);}
+    try{renderYear();}catch(e){console.error("renderYear",e);}
     $("backupStatus").textContent=state.lastBackup?"Último backup: "+new Date(state.lastBackup).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}):"Você ainda não exportou nenhum backup";
   }
 
@@ -738,7 +738,7 @@
       toast(`${c} parcelas criadas`);
     }
     else{draft.id="t"+Date.now()+Math.random().toString(36).slice(2,6);draft.created=Date.now();state.transactions.push({...draft});toast("Lançamento salvo");}
-    save();closeSheet();
+    closeSheet();save();
   });
   $("btnDelete").addEventListener("click",()=>{
     if(draft.groupId){
@@ -750,7 +750,7 @@
       if(!confirm("Excluir este lançamento?"))return;
       state.transactions=state.transactions.filter(x=>x.id!==draft.id);toast("Excluído");
     }
-    save();closeSheet();
+    closeSheet();save();
   });
   $("fab").addEventListener("click",()=>openSheet(null));
 

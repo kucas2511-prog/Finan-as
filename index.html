@@ -82,7 +82,9 @@
   .barrow .val{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:12.5px;color:var(--text);width:78px;text-align:right;flex:none}
   .trend{display:flex;align-items:flex-end;gap:8px;height:140px;padding-top:8px}
   .trend .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
-  .trend .stack{width:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:3px;height:100%}
+  .trend .stack{width:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:3px;flex:1;min-height:0}
+  .trend .tvals{display:flex;flex-direction:column;align-items:center;gap:1px;font-size:9.5px;font-weight:700;font-family:var(--mono);line-height:1.12}
+  .trend .tvals .ti{color:var(--income)} .trend .tvals .te{color:var(--expense)}
   .trend .bin{background:var(--income);border-radius:4px 4px 0 0;min-height:2px}
   .trend .bex{background:var(--expense);border-radius:4px 4px 0 0;min-height:2px}
   .trend .ml{font-size:11px;color:var(--muted)}
@@ -176,7 +178,7 @@
 
 <header>
   <div class="brand">livro&#8209;caixa · <b>Saldo</b></div>
-  <div class="hero-label">Saldo atual</div>
+  <div class="hero-label">Saldo na conta</div>
   <div class="hero-balance" id="heroBalance">R$ 0<span class="cents">,00</span></div>
   <div class="monthbar">
     <button id="prevMonth">‹</button>
@@ -334,12 +336,12 @@
   function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),1900);}
 
   function render(){
-    const total=state.transactions.filter(isMine).reduce((a,t)=>a+(t.type==="income"?t.amount:-t.amount),0);
+    const mk=monthKey(viewMonth);
+    const total=state.transactions.filter(t=>isMine(t)&&txMonthKey(t)<=mk).reduce((a,t)=>a+(t.type==="income"?t.amount:-t.amount),0);
     $("heroBalance").innerHTML=moneyHero(total);
     $("monthLabel").textContent=viewMonth.toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
     $("recMonth").textContent=viewMonth.toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
 
-    const mk=monthKey(viewMonth);
     const monthTx=state.transactions.filter(t=>txMonthKey(t)===mk);
     const mineTx=monthTx.filter(isMine);
     $("sumIn").textContent=fmt.format(mineTx.filter(t=>t.type==="income").reduce((a,t)=>a+t.amount,0));
@@ -481,7 +483,8 @@
     for(let i=5;i>=0;i--){const d=new Date(base);d.setMonth(d.getMonth()-i);months.push(monthKey(d));}
     const data=months.map(m=>{const tx=state.transactions.filter(t=>txMonthKey(t)===m&&isMine(t));return{m,in:tx.filter(t=>t.type==="income").reduce((a,t)=>a+t.amount,0),ex:tx.filter(t=>t.type==="expense").reduce((a,t)=>a+t.amount,0)};});
     const gmax=Math.max(1,...data.map(d=>Math.max(d.in,d.ex)));
-    $("trendCard").innerHTML=`<div class="trend">${data.map(d=>{const mn=new Date(d.m+"-01T00:00:00").toLocaleDateString("pt-BR",{month:"short"}).replace(".","");return `<div class="col"><div class="stack"><div class="bin" style="height:${(d.in/gmax*100).toFixed(1)}%"></div><div class="bex" style="height:${(d.ex/gmax*100).toFixed(1)}%"></div></div><div class="ml">${mn}</div></div>`;}).join("")}</div><div class="legend"><span><i style="background:var(--income)"></i>Entradas</span><span><i style="background:var(--expense)"></i>Minhas saídas</span></div>`;
+    const compact=v=>v>=1000?(v/1000).toFixed(1).replace(".",",")+"k":String(Math.round(v));
+    $("trendCard").innerHTML=`<div class="trend">${data.map(d=>{const mn=new Date(d.m+"-01T00:00:00").toLocaleDateString("pt-BR",{month:"short"}).replace(".","");return `<div class="col"><div class="tvals"><span class="ti">${d.in?compact(d.in):""}</span><span class="te">${d.ex?compact(d.ex):""}</span></div><div class="stack"><div class="bin" style="height:${(d.in/gmax*100).toFixed(1)}%"></div><div class="bex" style="height:${(d.ex/gmax*100).toFixed(1)}%"></div></div><div class="ml">${mn}</div></div>`;}).join("")}</div><div class="legend"><span><i style="background:var(--income)"></i>Entradas</span><span><i style="background:var(--expense)"></i>Minhas saídas</span></div>`;
   }
 
   // ---------- COBRANÇA POR PESSOA ----------

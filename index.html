@@ -166,6 +166,10 @@
   .chip.sel{background:var(--gold);color:#11171E;border-color:var(--gold)}
   #cardTxFilter{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
   #cardTxFilter .chip{flex:none;white-space:nowrap}
+  .filter-sub{display:none;align-items:center;justify-content:space-between;background:rgba(229,178,93,.12);border:1px solid rgba(229,178,93,.35);border-radius:12px;padding:11px 14px;margin-bottom:10px}
+  .filter-sub.show{display:flex}
+  .filter-sub .l{font-size:12.5px;color:var(--gold);font-weight:600}
+  .filter-sub .r{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:700;color:var(--gold)}
   .toggle-row{display:flex;align-items:center;justify-content:space-between;background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:15px}
   .toggle-row .tl{font-size:15px;font-weight:600}
   .toggle-row .ts{font-size:12px;color:var(--muted);margin-top:2px}
@@ -203,7 +207,7 @@
 <body>
 
 <header>
-  <div class="brand">livro&#8209;caixa · <b>Saldo</b> <span style="margin-left:auto;font-size:11px;color:var(--muted-2);letter-spacing:.02em">v2.5</span></div>
+  <div class="brand">livro&#8209;caixa · <b>Saldo</b> <span style="margin-left:auto;font-size:11px;color:var(--muted-2);letter-spacing:.02em">v2.6</span></div>
   <div class="hero-label">Saldo na conta</div>
   <div class="hero-balance" id="heroBalance">R$ 0<span class="cents">,00</span></div>
   <div class="monthbar">
@@ -221,6 +225,7 @@
 <main>
   <section class="view active" id="view-tx">
     <div class="section-title">Lançamentos do mês <span style="display:flex;gap:16px"><button class="add" id="filterBtnTx">Filtrar</button><button class="add" id="selectModeBtn">Selecionar</button></span></div>
+    <div class="filter-sub" id="txFilterSub"><span class="l" id="txFilterSubL">Filtrado</span><span class="r" id="txFilterSubR"></span></div>
     <div id="txList"></div>
   </section>
 
@@ -234,6 +239,7 @@
     <div class="section-title">Categorias <button class="add" id="addCatBtn">+ Adicionar</button></div>
     <div id="catList"></div>
     <div class="section-title">Compras no cartão · mês <button class="add" id="filterBtnCards">Filtrar</button></div>
+    <div class="filter-sub" id="cardFilterSub"><span class="l" id="cardFilterSubL">Filtrado</span><span class="r" id="cardFilterSubR"></span></div>
     <div id="cardTxList"></div>
   </section>
 
@@ -472,6 +478,8 @@
     el.className=selectMode?"selmode":"";
     const mk=monthKey(viewMonth);
     const list0=state.transactions.filter(t=>txMonthKey(t)===mk&&isMine(t)&&passesFilter(t));
+    const fsub=$("txFilterSub");
+    if(filterCount()){const net=list0.reduce((a,t)=>a+(t.type==="income"?t.amount:-t.amount),0);$("txFilterSubL").textContent=`Filtrado · ${list0.length} ${list0.length===1?"item":"itens"}`;$("txFilterSubR").textContent=fmt.format(net);fsub.classList.add("show");}else fsub.classList.remove("show");
     if(!list0.length){el.innerHTML=`<div class="empty"><div class="big">🪙</div><p>${filterCount()?"Nenhum lançamento com esse filtro":"Nenhum lançamento seu neste mês"}</p><small>${filterCount()?"Ajuste o filtro no botão acima.":"Toque no + para adicionar."}</small></div>`;return;}
     const byDay={};list0.forEach(t=>{(byDay[t.date]=byDay[t.date]||[]).push(t);});
     const days=Object.keys(byDay).sort().reverse();
@@ -567,6 +575,8 @@
     const mk=monthKey(viewMonth);
     let ctx=state.transactions.filter(t=>txMonthKey(t)===mk&&t.cardId&&passesFilter(t));
     ctx=ctx.sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:b.created-a.created);
+    const csub=$("cardFilterSub");
+    if(filterCount()){const tot=ctx.reduce((a,t)=>a+t.amount,0);$("cardFilterSubL").textContent=`Filtrado · ${ctx.length} ${ctx.length===1?"compra":"compras"}`;$("cardFilterSubR").textContent=fmt.format(tot);csub.classList.add("show");}else csub.classList.remove("show");
     const ctl=$("cardTxList");
     if(!ctx.length){ctl.innerHTML=`<div class="card" style="color:var(--muted);font-size:13.5px;text-align:center">${filterCount()?"Nenhuma compra com esse filtro no mês.":"Sem compras no cartão neste mês."}</div>`;}
     else{

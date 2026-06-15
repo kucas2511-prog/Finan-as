@@ -203,7 +203,7 @@
 <body>
 
 <header>
-  <div class="brand">livro&#8209;caixa · <b>Saldo</b> <span style="margin-left:auto;font-size:11px;color:var(--muted-2);letter-spacing:.02em">v2.2</span></div>
+  <div class="brand">livro&#8209;caixa · <b>Saldo</b> <span style="margin-left:auto;font-size:11px;color:var(--muted-2);letter-spacing:.02em">v2.3</span></div>
   <div class="hero-label">Saldo na conta</div>
   <div class="hero-balance" id="heroBalance">R$ 0<span class="cents">,00</span></div>
   <div class="monthbar">
@@ -233,6 +233,9 @@
     <div id="peopleList"></div>
     <div class="section-title">Categorias <button class="add" id="addCatBtn">+ Adicionar</button></div>
     <div id="catList"></div>
+    <div class="section-title">Compras no cartão · mês</div>
+    <div class="cats" id="cardTxFilter" style="margin-bottom:10px"></div>
+    <div id="cardTxList"></div>
   </section>
 
   <section class="view" id="view-year">
@@ -447,28 +450,23 @@
     const el=$("txList");
     el.className=selectMode?"selmode":"";
     const mk=monthKey(viewMonth);
-    const list0=state.transactions.filter(t=>txMonthKey(t)===mk);
-    if(!list0.length){el.innerHTML=`<div class="empty"><div class="big">🪙</div><p>Nenhum lançamento neste mês</p><small>Toque no + para adicionar.</small></div>`;return;}
+    const list0=state.transactions.filter(t=>txMonthKey(t)===mk&&isMine(t));
+    if(!list0.length){el.innerHTML=`<div class="empty"><div class="big">🪙</div><p>Nenhum lançamento seu neste mês</p><small>Toque no + para adicionar.</small></div>`;return;}
     const byDay={};list0.forEach(t=>{(byDay[t.date]=byDay[t.date]||[]).push(t);});
     const days=Object.keys(byDay).sort().reverse();
     let html="";
     days.forEach(d=>{
       const list=byDay[d].sort((a,b)=>b.created-a.created);
-      const daySub=list.filter(isMine).reduce((a,t)=>a+(t.type==="income"?t.amount:-t.amount),0);
+      const daySub=list.reduce((a,t)=>a+(t.type==="income"?t.amount:-t.amount),0);
       const dlabel=new Date(d+"T00:00:00").toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"short"});
       html+=`<div class="day-group"><div class="day-head"><span>${dlabel}</span><span class="dsub">${daySub>=0?"+":"−"}${fmtNum.format(Math.abs(daySub))}</span></div>`;
       list.forEach(t=>{
         const c=cardById(t.cardId);
         const isSel=selectedIds.has(t.id);
-        const mine=isMine(t);
-        const who=mine?"":`<span class="pill card">${escapeHtml(t.responsavel)}</span>`;
-        const cardPill=c?`<span class="pill${mine?" card":""}">${escapeHtml(c.name)}</span>`:"";
-        const amtCls=t.type==="income"?"income":(mine?"expense":"");
-        const amtStyle=mine?"":' style="color:var(--muted)"';
         html+=`<div class="tx${isSel?" sel":""}" data-id="${t.id}"><div class="chk">${isSel?"✓":""}</div><div class="dot">${catIcon(t.type,t.category)}</div>
           <div class="info"><div class="cat">${t.category}</div>
-          <div class="desc">${who}${cardPill}${t.desc?escapeHtml(t.desc):""}</div></div>
-          <div class="amt ${amtCls}"${amtStyle}>${t.type==="income"?"+":"−"} ${fmtNum.format(t.amount)}</div></div>`;
+          <div class="desc">${c?`<span class="pill card">${escapeHtml(c.name)}</span>`:""}${t.desc?escapeHtml(t.desc):""}</div></div>
+          <div class="amt ${t.type}">${t.type==="income"?"+":"−"} ${fmtNum.format(t.amount)}</div></div>`;
       });
       html+="</div>";
     });
@@ -540,6 +538,36 @@
           <div class="tot">${fmt.format(tot)}${out>0?`<small>${fmt.format(out)} de terceiros</small>`:""}</div></div>`;
       }).join("");
       cl.querySelectorAll(".cardrow").forEach(n=>n.addEventListener("click",()=>openCardSheet(n.dataset.card)));
+    }
+    // filtro por cartão
+    if(cardFilter&&!cardById(cardFilter))cardFilter=null;
+    const ff=$("cardTxFilter");
+    let fhtml=`<button class="chip ${!cardFilter?"sel":""}" data-f="">Todos</button>`;
+    fhtml+=state.cards.map(c=>`<button class="chip ${cardFilter===c.id?"sel":""}" data-f="${c.id}">${escapeHtml(c.name)}</button>`).join("");
+    ff.innerHTML=fhtml;
+    ff.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>{
+      cardFilter=c.dataset.f||null;
+      ff.querySelectorAll(".chip").forEach(x=>x.classList.toggle("sel",(x.dataset.f||null)===cardFilter));
+      renderCardTx();
+    }));
+    renderCardTx();
+  }
+
+  function renderCardTx(){
+    const mk=monthKey(viewMonth);
+    let ctx=state.transactions.filter(t=>txMonthKey(t)===mk&&t.cardId);
+    if(cardFilter)ctx=ctx.filter(t=>t.cardId===cardFilter);
+    ctx=ctx.sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:b.created-a.created);
+    const ctl=$("cardTxList");
+    if(!ctx.length){ctl.innerHTML=`<div class="card" style="color:var(--muted);font-size:13.5px;text-align:center">${cardFilter?"Sem compras neste cartão no mês.":"Sem compras no cartão neste mês."}</div>`;}
+    else{
+      ctl.innerHTML=ctx.map(t=>{const c=cardById(t.cardId);
+        return `<div class="tx" data-id="${t.id}"><div class="dot">${catIcon(t.type,t.category)}</div>
+          <div class="info"><div class="cat">${t.category}</div>
+          <div class="desc"><span class="pill ${isMine(t)?"":"card"}">${isMine(t)?"Eu":escapeHtml(t.responsavel)}</span>${c?escapeHtml(c.name):""}${t.desc?" · "+escapeHtml(t.desc):""}</div></div>
+          <div class="amt expense">− ${fmtNum.format(t.amount)}</div></div>`;
+      }).join("");
+      ctl.querySelectorAll(".tx").forEach(n=>n.addEventListener("click",()=>openSheet(n.dataset.id)));
     }
   }
 

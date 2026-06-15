@@ -201,7 +201,7 @@
 <body>
 
 <header>
-  <div class="brand">livro&#8209;caixa · <b>Saldo</b> <span style="margin-left:auto;font-size:11px;color:var(--muted-2);letter-spacing:.02em">v1.7</span></div>
+  <div class="brand">livro&#8209;caixa · <b>Saldo</b> <span style="margin-left:auto;font-size:11px;color:var(--muted-2);letter-spacing:.02em">v1.8</span></div>
   <div class="hero-label">Saldo na conta</div>
   <div class="hero-balance" id="heroBalance">R$ 0<span class="cents">,00</span></div>
   <div class="monthbar">
@@ -254,7 +254,8 @@
   <section class="view" id="view-backup">
     <div class="section-title">Backup e dados</div>
     <div class="row"><div><div class="t">Exportar JSON</div><div class="s" id="backupStatus">Salve o arquivo nos seus Arquivos</div></div><button class="act gold" id="btnExport">Exportar</button></div>
-    <div class="row"><div><div class="t">Importar JSON</div><div class="s">Restaura a partir de um backup</div></div><button class="act" id="btnImport">Importar</button><input type="file" id="fileInput" accept="application/json,.json" hidden></div>
+    <div class="row"><div><div class="t">Importar JSON</div><div class="s">Restaura a partir de um backup (arquivo)</div></div><button class="act" id="btnImport">Importar</button><input type="file" id="fileInput" accept="application/json,.json" hidden></div>
+    <div class="row"><div><div class="t">Colar JSON</div><div class="s">Cole o conteúdo do backup (recomendado no app instalado)</div></div><button class="act" id="btnPaste">Colar</button></div>
     <div class="row"><div><div class="t">Apagar tudo</div><div class="s">Remove lançamentos, cartões e pessoas</div></div><button class="act danger" id="btnReset">Apagar</button></div>
     <div class="row"><div><div class="t">Forçar atualização</div><div class="s">Limpa o cache e recarrega a versão mais nova</div></div><button class="act" id="btnForceUpdate">Atualizar</button></div>
     <p class="backup-warn">Os dados ficam apenas neste aparelho, no armazenamento do navegador. O iOS pode limpar esse armazenamento se o app ficar muito tempo sem ser aberto — o backup em JSON é o que protege seus dados de verdade. Exporte de tempos em tempos. (Forçar atualização não apaga seus dados.)</p>
@@ -351,6 +352,19 @@
   <div style="display:flex;gap:8px">
     <button class="selbtn ghost" id="selCancel">Cancelar</button>
     <button class="selbtn danger" id="selDelete">Excluir</button>
+  </div>
+</div>
+
+<!-- MODAL COLAR JSON -->
+<div class="scrim" id="scrimImport">
+  <div class="sheet">
+    <h2>Colar backup JSON</h2>
+    <div class="field"><label class="fl">Abra o arquivo .json, copie tudo e cole abaixo</label>
+      <textarea class="txt" id="importText" rows="7" placeholder='{ "transactions": [ ... ] }' style="resize:vertical;min-height:120px;font-family:var(--mono);font-size:12px"></textarea></div>
+    <div class="sheet-actions">
+      <button class="btn ghost" id="importCancel">Cancelar</button>
+      <button class="btn primary" id="importConfirm">Importar</button>
+    </div>
   </div>
 </div>
 
@@ -829,10 +843,33 @@
     a.href=url;a.download=`saldo-backup-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
     render();toast("Backup gerado");
   });
+  function applyImport(text){
+    if(!text||!text.trim()){alert("Não consegui ler o conteúdo (no app instalado o iOS às vezes devolve o arquivo vazio). Use a opção “Colar JSON”.");return false;}
+    let d;
+    try{d=JSON.parse(text.replace(/^\uFEFF/,"").trim());}
+    catch(err){alert("JSON inválido — o texto não está completo ou tem algo a mais. Copie o arquivo inteiro novamente.");return false;}
+    if(!d||!Array.isArray(d.transactions)){alert("Arquivo não parece um backup deste app (sem lista de lançamentos).");return false;}
+    d.cards=Array.isArray(d.cards)?d.cards:[];
+    d.people=Array.isArray(d.people)?d.people:[];
+    if(!d.customCats||!Array.isArray(d.customCats.income)||!Array.isArray(d.customCats.expense))d.customCats={income:[],expense:[]};
+    if(confirm(`Importar ${d.transactions.length} lançamento(s), ${d.cards.length} cartão(ões) e ${d.people.length} pessoa(s)? Substitui os dados atuais.`)){
+      state=d;cardFilter=null;save();toast("Backup restaurado");return true;
+    }
+    return false;
+  }
   $("btnImport").addEventListener("click",()=>$("fileInput").click());
-  $("fileInput").addEventListener("change",e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
-    r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.transactions))throw new Error();d.cards=d.cards||[];d.people=Array.isArray(d.people)?d.people:[];if(!d.customCats||!Array.isArray(d.customCats.income)||!Array.isArray(d.customCats.expense))d.customCats={income:[],expense:[]};if(confirm(`Importar ${d.transactions.length} lançamento(s), ${d.cards.length} cartão(ões) e ${d.people.length} pessoa(s)? Substitui os dados atuais.`)){state=d;cardFilter=null;save();toast("Backup restaurado");}}catch(err){alert("Arquivo inválido. Selecione um backup .json deste app.");}e.target.value="";};
-    r.readAsText(f);});
+  $("fileInput").addEventListener("change",async e=>{
+    const f=e.target.files[0];if(!f){return;}
+    try{
+      const text=f.text?await f.text():await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(r.error);r.readAsText(f);});
+      applyImport(text);
+    }catch(err){alert("Não consegui abrir o arquivo (limitação do iOS no app instalado). Use a opção “Colar JSON”.");}
+    e.target.value="";
+  });
+  $("btnPaste").addEventListener("click",()=>{$("importText").value="";$("scrimImport").classList.add("open");setTimeout(()=>$("importText").focus(),80);});
+  $("importCancel").addEventListener("click",()=>$("scrimImport").classList.remove("open"));
+  $("scrimImport").addEventListener("click",e=>{if(e.target===$("scrimImport"))$("scrimImport").classList.remove("open");});
+  $("importConfirm").addEventListener("click",()=>{if(applyImport($("importText").value))$("scrimImport").classList.remove("open");});
   $("btnReset").addEventListener("click",()=>{if(confirm("Apagar TUDO? Exporte um backup antes se quiser guardar.")){state={transactions:[],cards:[],people:[],customCats:{income:[],expense:[]},lastBackup:state.lastBackup};cardFilter=null;save();toast("Dados apagados");}});
   $("btnForceUpdate").addEventListener("click",async()=>{
     toast("Limpando cache…");

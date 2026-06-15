@@ -201,7 +201,7 @@
 <body>
 
 <header>
-  <div class="brand">livro&#8209;caixa · <b>Saldo</b> <span style="margin-left:auto;font-size:11px;color:var(--muted-2);letter-spacing:.02em">v1.8</span></div>
+  <div class="brand">livro&#8209;caixa · <b>Saldo</b> <span style="margin-left:auto;font-size:11px;color:var(--muted-2);letter-spacing:.02em">v1.9</span></div>
   <div class="hero-label">Saldo na conta</div>
   <div class="hero-balance" id="heroBalance">R$ 0<span class="cents">,00</span></div>
   <div class="monthbar">
@@ -544,12 +544,13 @@
     ff.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>{
       cardFilter=c.dataset.f||null;
       ff.querySelectorAll(".chip").forEach(x=>x.classList.toggle("sel",(x.dataset.f||null)===cardFilter));
-      requestAnimationFrame(()=>renderCardTx(mk));
+      renderCardTx();
     }));
-    renderCardTx(mk);
+    renderCardTx();
   }
 
-  function renderCardTx(mk){
+  function renderCardTx(){
+    const mk=monthKey(viewMonth);
     let ctx=state.transactions.filter(t=>txMonthKey(t)===mk&&t.cardId);
     if(cardFilter)ctx=ctx.filter(t=>t.cardId===cardFilter);
     ctx=ctx.sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:b.created-a.created);

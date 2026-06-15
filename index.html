@@ -481,7 +481,8 @@
     exitSelectMode();save();
   });
 
-  function renderCardsView(mk,monthTx){
+  function renderCardsView(mk,_){
+    const monthTx=state.transactions.filter(t=>txMonthKey(t)===mk);
     const others=monthTx.filter(t=>!isMine(t)&&t.type==="expense");
     const byPerson={};others.forEach(t=>{byPerson[t.responsavel]=(byPerson[t.responsavel]||0)+t.amount;});
     const total=others.reduce((a,t)=>a+t.amount,0);

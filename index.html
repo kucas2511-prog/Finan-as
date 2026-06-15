@@ -203,7 +203,7 @@
 <body>
 
 <header>
-  <div class="brand">livro&#8209;caixa · <b>Saldo</b> <span style="margin-left:auto;font-size:11px;color:var(--muted-2);letter-spacing:.02em">v2.1</span></div>
+  <div class="brand">livro&#8209;caixa · <b>Saldo</b> <span style="margin-left:auto;font-size:11px;color:var(--muted-2);letter-spacing:.02em">v2.2</span></div>
   <div class="hero-label">Saldo na conta</div>
   <div class="hero-balance" id="heroBalance">R$ 0<span class="cents">,00</span></div>
   <div class="monthbar">
@@ -414,7 +414,7 @@
   function addMonths(iso,i){const p=iso.split("-").map(Number);const dt=new Date(p[0],p[1]-1+i,1);const last=new Date(dt.getFullYear(),dt.getMonth()+1,0).getDate();const day=Math.min(p[2],last);return dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(day).padStart(2,"0");}
   function cardById(id){return state.cards.find(c=>c.id===id);}
   function moneyHero(v){const s=fmtNum.format(Math.abs(v)).split(",");return `${v<0?"-":""}R$ ${s[0]}<span class="cents">,${s[1]}</span>`;}
-  function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+  function escapeHtml(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
   function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),1900);}
 
   function render(){

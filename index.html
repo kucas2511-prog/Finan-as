@@ -201,7 +201,7 @@
 <body>
 
 <header>
-  <div class="brand">livro&#8209;caixa · <b>Saldo</b></div>
+  <div class="brand">livro&#8209;caixa · <b>Saldo</b> <span style="margin-left:auto;font-size:11px;color:var(--muted-2);letter-spacing:.02em">v1.5</span></div>
   <div class="hero-label">Saldo na conta</div>
   <div class="hero-balance" id="heroBalance">R$ 0<span class="cents">,00</span></div>
   <div class="monthbar">
@@ -386,7 +386,10 @@
     }}catch(e){}
     return {transactions:[],cards:[],people:[],customCats:{income:[],expense:[]},lastBackup:null};
   }
-  function save(){localStorage.setItem(KEY,JSON.stringify(state));render();}
+  const MESES=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+  const MESES_SHORT=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+  function mlabel(d){return MESES[d.getMonth()]+" de "+d.getFullYear();}
+  function mshort(mk){return MESES_SHORT[parseInt(mk.slice(5,7))-1];}
 
   const $=id=>document.getElementById(id);
   const isMine=t=>(t.responsavel||"Eu")==="Eu";
@@ -404,8 +407,8 @@
     const mk=monthKey(viewMonth);
     const total=state.transactions.filter(t=>isMine(t)&&txMonthKey(t)<=mk).reduce((a,t)=>a+(t.type==="income"?t.amount:-t.amount),0);
     $("heroBalance").innerHTML=moneyHero(total);
-    $("monthLabel").textContent=viewMonth.toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
-    $("recMonth").textContent=viewMonth.toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
+    $("monthLabel").textContent=mlabel(viewMonth);
+    $("recMonth").textContent=mlabel(viewMonth);
 
     const monthTx=state.transactions.filter(t=>txMonthKey(t)===mk);
     const mineTx=monthTx.filter(isMine);
@@ -574,7 +577,7 @@
       const exp=mine.filter(t=>t.type==="expense").reduce((a,t)=>a+t.amount,0);
       const net=inc-exp;yearNet+=net;
       const incCat={},expCat={};mine.forEach(t=>{const o=t.type==="income"?incCat:expCat;o[t.category]=(o[t.category]||0)+t.amount;});
-      const mname=new Date(mk+"-01T00:00:00").toLocaleDateString("pt-BR",{month:"long"});
+      const mname=MESES[m];
       const hasMine=mine.length>0;
       mineHtml+=`<details class="erow"${hasMine?"":" data-empty"}><summary><span class="mn">${mname}</span><span class="val ${net>=0?"pos":"neg"}">${fmt.format(net)}</span></summary><div class="detail">${hasMine?catBreak(incCat,expCat):'<div class="muted-line">Sem lançamentos</div>'}</div></details>`;
       const others=tx.filter(t=>!isMine(t)&&t.type==="expense");
@@ -595,12 +598,13 @@
     const entries=Object.entries(cat).sort((a,b)=>b[1]-a[1]);
     const max=Math.max(1,...entries.map(e=>e[1]));
     $("catCard").innerHTML=entries.length?entries.map(([n,v])=>`<div class="barrow"><div class="lbl">${n}</div><div class="track"><div class="fill" style="width:${(v/max*100).toFixed(1)}%"></div></div><div class="val">${fmtNum.format(v)}</div></div>`).join(""):`<div style="color:var(--muted);font-size:13.5px;text-align:center;padding:14px">Sem saídas suas neste mês.</div>`;
-    const months=[];const base=new Date(viewMonth);
-    for(let i=5;i>=0;i--){const d=new Date(base);d.setMonth(d.getMonth()-i);months.push(monthKey(d));}
+    const [mky,mkm]=mk.split("-").map(Number);
+    const months=[];
+    for(let i=5;i>=0;i--){let mm=mkm-1-i;let yy=mky+Math.floor(mm/12);mm=((mm%12)+12)%12;months.push(yy+"-"+String(mm+1).padStart(2,"0"));}
     const data=months.map(m=>{const tx=state.transactions.filter(t=>txMonthKey(t)===m&&isMine(t));return{m,in:tx.filter(t=>t.type==="income").reduce((a,t)=>a+t.amount,0),ex:tx.filter(t=>t.type==="expense").reduce((a,t)=>a+t.amount,0)};});
     const gmax=Math.max(1,...data.map(d=>Math.max(d.in,d.ex)));
     const compact=v=>v>=1000?(v/1000).toFixed(1).replace(".",",")+"k":String(Math.round(v));
-    $("trendCard").innerHTML=`<div class="trend">${data.map(d=>{const mn=new Date(d.m+"-01T00:00:00").toLocaleDateString("pt-BR",{month:"short"}).replace(".","");return `<div class="col"><div class="tvals"><span class="ti">${d.in?compact(d.in):""}</span><span class="te">${d.ex?compact(d.ex):""}</span></div><div class="stack"><div class="bin" style="height:${(d.in/gmax*100).toFixed(1)}%"></div><div class="bex" style="height:${(d.ex/gmax*100).toFixed(1)}%"></div></div><div class="ml">${mn}</div></div>`;}).join("")}</div><div class="legend"><span><i style="background:var(--income)"></i>Entradas</span><span><i style="background:var(--expense)"></i>Minhas saídas</span></div>`;
+    $("trendCard").innerHTML=`<div class="trend">${data.map(d=>{return `<div class="col"><div class="tvals"><span class="ti">${d.in?compact(d.in):""}</span><span class="te">${d.ex?compact(d.ex):""}</span></div><div class="stack"><div class="bin" style="height:${(d.in/gmax*100).toFixed(1)}%"></div><div class="bex" style="height:${(d.ex/gmax*100).toFixed(1)}%"></div></div><div class="ml">${mshort(d.m)}</div></div>`;}).join("")}</div><div class="legend"><span><i style="background:var(--income)"></i>Entradas</span><span><i style="background:var(--expense)"></i>Minhas saídas</span></div>`;
   }
 
   // ---------- COBRANÇA POR PESSOA ----------

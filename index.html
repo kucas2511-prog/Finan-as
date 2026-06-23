@@ -140,9 +140,9 @@
   .backup-warn{font-size:12.5px;color:var(--muted);line-height:1.5;padding:4px;margin-top:6px}
 
   nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:rgba(15,20,25,.86);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--line);padding:8px 4px calc(8px + env(safe-area-inset-bottom));z-index:40}
-  nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted-2);font-size:10px;font-weight:600;padding:6px 1px}
+  nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted-2);font-size:9px;font-weight:600;padding:6px 0}
   nav button.active{color:var(--gold)}
-  nav button .ic{font-size:18px;line-height:1}
+  nav button .ic{font-size:17px;line-height:1}
   .fab{position:fixed;right:18px;bottom:calc(82px + env(safe-area-inset-bottom));width:56px;height:56px;border-radius:50%;background:var(--gold);color:#11171E;font-size:29px;font-weight:300;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);z-index:45}
   .fab:active{transform:scale(.94)}
 
@@ -207,7 +207,7 @@
 <body>
 
 <header>
-  <div class="brand">livro&#8209;caixa · <b>Saldo</b> <span style="margin-left:auto;font-size:11px;color:var(--muted-2);letter-spacing:.02em">v2.6</span></div>
+  <div class="brand">livro&#8209;caixa · <b>Saldo</b> <span style="margin-left:auto;font-size:11px;color:var(--muted-2);letter-spacing:.02em">v2.7</span></div>
   <div class="hero-label">Saldo na conta</div>
   <div class="hero-balance" id="heroBalance">R$ 0<span class="cents">,00</span></div>
   <div class="monthbar">
@@ -227,6 +227,15 @@
     <div class="section-title">Lançamentos do mês <span style="display:flex;gap:16px"><button class="add" id="filterBtnTx">Filtrar</button><button class="add" id="selectModeBtn">Selecionar</button></span></div>
     <div class="filter-sub" id="txFilterSub"><span class="l" id="txFilterSubL">Filtrado</span><span class="r" id="txFilterSubR"></span></div>
     <div id="txList"></div>
+  </section>
+
+  <section class="view" id="view-daily">
+    <div class="section-title">Saldo por dia · <span class="mono" id="dailyMonth" style="margin-left:4px"></span></div>
+    <div class="card" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span style="color:var(--muted);font-size:13px">Saldo no início do mês</span>
+      <span class="mono" id="dailyStart" style="font-weight:600"></span>
+    </div>
+    <div id="dailyList"></div>
   </section>
 
   <section class="view" id="view-cards">
@@ -272,7 +281,8 @@
 <button class="fab" id="fab">+</button>
 
 <nav>
-  <button class="active" data-view="tx"><span class="ic">≡</span>Lançamentos</button>
+  <button class="active" data-view="tx"><span class="ic">≡</span>Lançam.</button>
+  <button data-view="daily"><span class="ic">▥</span>Diário</button>
   <button data-view="cards"><span class="ic">▭</span>Cartões</button>
   <button data-view="year"><span class="ic">▤</span>Resumo</button>
   <button data-view="charts"><span class="ic">▦</span>Gráficos</button>
@@ -468,6 +478,7 @@
     try{renderPeople();}catch(e){console.error("renderPeople",e);}
     try{renderCats();}catch(e){console.error("renderCats",e);}
     try{renderCharts(mk);}catch(e){console.error("renderCharts",e);}
+    try{renderDaily();}catch(e){console.error("renderDaily",e);}
     try{renderYear();}catch(e){console.error("renderYear",e);}
     updateFilterButtons();
     $("backupStatus").textContent=state.lastBackup?"Último backup: "+new Date(state.lastBackup).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}):"Você ainda não exportou nenhum backup";
@@ -636,6 +647,28 @@
     $("yearRecTotal").textContent=fmt.format(yearRec);
     $("yearMine").innerHTML=mineHtml;
     $("yearRec").innerHTML=recHtml;
+  }
+
+  function renderDaily(){
+    const mk=monthKey(viewMonth);
+    $("dailyMonth").textContent=mlabel(viewMonth);
+    const prev=state.transactions.filter(t=>isMine(t)&&txMonthKey(t)<mk).reduce((a,t)=>a+(t.type==="income"?t.amount:-t.amount),0);
+    $("dailyStart").textContent=fmt.format(prev);
+    const mine=state.transactions.filter(t=>isMine(t)&&txMonthKey(t)===mk);
+    const el=$("dailyList");
+    if(!mine.length){el.innerHTML=`<div class="card" style="color:var(--muted);font-size:13.5px;text-align:center">Sem lançamentos seus neste mês.</div>`;return;}
+    const byDay={};mine.forEach(t=>{(byDay[t.date]=byDay[t.date]||[]).push(t);});
+    const days=Object.keys(byDay).sort();
+    let running=prev,html="";
+    days.forEach(d=>{
+      const list=byDay[d].sort((a,b)=>b.created-a.created);
+      const net=list.reduce((a,t)=>a+(t.type==="income"?t.amount:-t.amount),0);
+      running+=net;
+      const dlabel=new Date(d+"T00:00:00").toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"short"});
+      const detail=list.map(t=>{const c=cardById(t.cardId);return `<div class="brk"><span>${escapeHtml(t.category)}${c?" · "+escapeHtml(c.name):""}${t.desc?" · "+escapeHtml(t.desc):""}</span><span class="bv" style="color:${t.type==="income"?"var(--income)":"var(--text)"}">${t.type==="income"?"+":"−"} ${fmtNum.format(t.amount)}</span></div>`;}).join("");
+      html+=`<details class="erow"><summary><span class="mn" style="text-transform:none">${dlabel}</span><span class="val ${running>=0?"pos":"neg"}">${fmt.format(running)}</span></summary><div class="detail"><div class="brk" style="border-bottom:1px solid var(--line)"><span>Movimento do dia</span><span class="bv" style="color:${net>=0?"var(--income)":"var(--expense)"}">${net>=0?"+":"−"} ${fmtNum.format(Math.abs(net))}</span></div>${detail}</div></details>`;
+    });
+    el.innerHTML=html;
   }
 
   function renderCharts(mk){
